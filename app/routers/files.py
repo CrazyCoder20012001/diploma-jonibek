@@ -1,13 +1,17 @@
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-from fastapi import status, Depends
-
-from app.configs.db_config import get_db
 from app.entity.entities import Uploads
 from app.utils import UPLOADS_DIR
-from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from app.configs.db_config import get_db
+from app.services import uploads as service
 
-router = APIRouter(tags=['File download'], prefix="/download")
+router = APIRouter(tags=['File Uploads'], prefix="/file")
+
+
+@router.post("/uploadfile/")
+async def create_upload_file(file: UploadFile, db: Session = Depends(get_db)):
+    return await service.create(file, db)
 
 
 def get(id: int, db: Session):
@@ -18,6 +22,6 @@ def get(id: int, db: Session):
                         filename=upload.original_name)
 
 
-@router.get('/{id}')
+@router.get('download/{id}')
 async def download_file(id: int, db: Session = Depends(get_db)):
     return get(id=id, db=db)
